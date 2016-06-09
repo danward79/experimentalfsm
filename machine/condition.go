@@ -14,11 +14,12 @@ import (
 type Condition struct {
 	file         string
 	ignoreFields string
-	State        map[string]string //map[condition(string)]state(string)
+	State        map[string]string //ie. map[condition]state
 }
 
 //String pretty output for Condition types
 func (c *Condition) String() string {
+	fmt.Println("ssdfsdfsdf")
 	var s string
 	for k, v := range c.State {
 		s += fmt.Sprintf("Condition: %s, State: %s\n", k, v)
@@ -37,7 +38,7 @@ func mapConditions(file, ignoreFields string) map[string]string {
 
 	ignoreList, err := intList.New(ignoreFields)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Condition map file: ", err)
 	}
 
 	f, err := os.Open(file)

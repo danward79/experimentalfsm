@@ -20,19 +20,17 @@ func main() {
 
 	//Create machine and output state map
 	camShaft := machine.New(*inputStates, *outputStates, *inputIgnoreFields, *outputIgnoreFields)
-	//sense check states
-	fmt.Println(camShaft.Output)
 
 	tractionOutStream, err := csvStream.New(*inputFile, *columns) //"0,38-44,47-49,51-52,51,52,54-60,63,65-67,69,79,80-82"
 	if err != nil {
 		log.Fatal(err)
 	}
-	//	fmt.Println(tractionOutStream)
 
-	go tractionOutStream.Emit()
+	fmt.Println("Transistion Map")
+	for k, v := range camShaft.Transistions {
+		fmt.Println("From:", k, v)
+	}
 
-	//for msg := range tractionOutStream.Out {
-	//	fmt.Println(msg)
-	//}
+	camShaft.Ingest(tractionOutStream.Emit())
 
 }
