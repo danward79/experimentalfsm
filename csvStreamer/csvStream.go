@@ -14,8 +14,6 @@ import (
 type CSVStream struct {
 	file    string
 	columns intList.List
-	reader  *csv.Reader
-	Out     chan []string
 }
 
 //String prints details about a CSVStream
@@ -34,41 +32,44 @@ func New(f string, cl string) (*CSVStream, error) {
 	c := CSVStream{
 		file:    f,
 		columns: il,
-		Out:     make(chan []string),
 	}
 
 	return &c, nil
 }
 
 //Emit fields into output channel
-func (c *CSVStream) Emit() {
+func (c *CSVStream) Emit() chan []string {
+	out := make(chan []string)
 
-	fi, err := os.Open(c.file)
-	if err != nil {
-		//TODO: Sort out this error handling
-		log.Fatal(err)
-	}
-	defer fi.Close()
-
-	c.reader = csv.NewReader(fi)
-
-	for {
-		record, err := c.reader.Read()
-		if err == io.EOF {
-			break
+	go func(chanOut chan []string) {
+		fi, err := os.Open(c.file)
+		if err != nil {
+			//TODO: Sort out this error handling
+			log.Fatal(err)
 		}
+		defer fi.Close()
 
-		var r []string
-		if len(c.columns) != 0 {
-			for _, v := range c.columns {
-				r = append(r, record[v])
+		csvReader := csv.NewReader(fi)
+
+		for {
+			record, err := csvReader.Read()
+			if err == io.EOF {
+				break
 			}
-			record = r
-		}
 
-		c.Out <- record
-	}
-	close(c.Out)
+			var r []string
+			if len(c.columns) != 0 {
+				for _, v := range c.columns {
+					r = append(r, record[v])
+				}
+				record = r
+			}
+
+			chanOut <- record
+		}
+	}(out)
+
+	return out
 }
 
 /*

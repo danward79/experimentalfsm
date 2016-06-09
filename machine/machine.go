@@ -1,10 +1,6 @@
 package machine
 
-import (
-	"fmt"
-
-	"github.com/danward79/fsm/intList"
-)
+import "fmt"
 
 //Machine type
 type Machine struct {
@@ -14,9 +10,6 @@ type Machine struct {
 	OutputData chan []string
 	InputData  chan []string
 }
-
-//State machine state can be entered from a previous state
-//type State map[string]string
 
 //String print info about the machine
 func (m *Machine) String() string {
@@ -37,23 +30,25 @@ func New(fileInputStates, fileOutputStates, inputColumnsIgnore, outputColumnsIgn
 	}
 
 	if m.Input.file != "" {
-		m.Input.state = mapConditions(m.Input.file, m.Input.ignoreFields)
+		m.Input.State = mapConditions(m.Input.file, m.Input.ignoreFields)
 	}
 
 	if m.Output.file != "" {
-		m.Output.state = mapConditions(m.Output.file, m.Output.ignoreFields)
+		m.Output.State = mapConditions(m.Output.file, m.Output.ignoreFields)
 	}
 
 	return &m
 }
 
-//ignore helper func to test if column should be ignored
-func ignore(list intList.List, column int64) bool {
-	for _, v := range list {
-		if v == column {
-			return true
-		}
+//Ingest consumes a stream of condition data
+func (m *Machine) Ingest(c chan []string) {
+	for record := range c {
+		fmt.Println("Ingest record:", record)
+		fmt.Println("match:", m.Match(record, m.Output.ignoreFields))
 	}
+}
 
-	return false
+//Match an event to a states
+func (m *Machine) Match(record []string, ignoreColumns string) string {
+	return m.Output.State[recordToString(record, "")]
 }

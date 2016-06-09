@@ -2,6 +2,7 @@ package machine
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -13,12 +14,21 @@ import (
 type Condition struct {
 	file         string
 	ignoreFields string
-	state        map[string]string //map[condition(string)]state(string)
+	State        map[string]string //map[condition(string)]state(string)
+}
+
+//String pretty output for Condition types
+func (c *Condition) String() string {
+	var s string
+	for k, v := range c.State {
+		s += fmt.Sprintf("Condition: %s, State: %s\n", k, v)
+	}
+	return fmt.Sprintf("File: %s\nIgnore Fields: %s\nState Conditions: %s", c.file, c.ignoreFields, s)
 }
 
 //GetState current state
 func (c *Condition) GetState(conditions string) string {
-	return c.state[conditions]
+	return c.State[conditions]
 }
 
 //MapConditions map condition set to state set
